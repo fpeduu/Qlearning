@@ -1,28 +1,14 @@
 import connection as cn
+from random import random, randint
 import time
 
 s = cn.connect(2037)
 
-# visited_states = []
-
-def bin_to_dec(num):
-    print(num)
-    return int(num.replace('0b', ""), 2)
-
 def q_update(state, action, reward, next_state):
-    alpha = 0.6
+    alpha = 0.7
     gamma = 0.4
 
     action = 0 if action == 'left' else 1 if action == 'right' else 2
-
-    # if (len(visited_states) > 16): visited_states = visited_states[-16:]
-
-    # if (visited_states.count(state) > 2): 
-    #     reward = reward * 1.5
-    # else:
-    #     visited_states.append(state)
-
-    # print(visited_states)
 
     print(f'last_qvalue: {qtable[state][action]}')
 
@@ -54,14 +40,21 @@ while True:
     while not reward == win:
         state = new_state
 
-        action = qtable[state].index(max(qtable[state]))
-        action = 'left' if action == 0 else 'right' if action == 1 else 'jump'
+        actions = {0: 'left', 1: 'right', 2: 'jump'}
+
+        if random() < 0.1:
+            action_idx = randint(0, 2)
+            
+        else: 
+            action_idx = qtable[state].index(max(qtable[state]))    
+        
+        action = actions[action_idx]
         
         new_state, reward = cn.get_state_reward(s, action)
 
         new_state = int(str(new_state), 2)
 
-        # print(f'state: {state}, action: {action},  new_state: {new_state}, reward: {reward}')
+        print(f'state: {state}, action: {action},  new_state: {new_state}, reward: {reward}')
 
         q_update(state, action, reward, new_state)
 
