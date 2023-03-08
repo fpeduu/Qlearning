@@ -1,84 +1,57 @@
 import connection as cn
-from random import random, randint
 import time
+import random
 
 s = cn.connect(2037)
 
-def q_update(state, action, reward, next_state):
-    alpha = 0.6
-    gamma = 0.4
+def q_update(state, action, reward, next_state, qtable, alpha, gamma):
+    actions = {'left': 0, 'right': 1, 'jump': 2}
+    action_idx = actions[action]
 
-    action = 0 if action == 'left' else 1 if action == 'right' else 2
+    new_qvalue = (1 - alpha) * qtable[state][action_idx] + alpha * (reward + gamma * max(qtable[next_state]))
+    qtable[state][action_idx] = new_qvalue
 
-    print(f'last_qvalue: {qtable[state][action]}')
+    return qtable
 
-    qtable[state][action] = (1 - alpha) * qtable[state][action] + alpha * (reward + gamma * max(qtable[next_state]))
-
-    print(f'new_qvalue: {qtable[state][action]}')
-
-death = -100
-win = 300
+death_reward = -100
+win_reward = 300
+epsilon = 0.2
+alpha = 0.3
+gamma = 0.7
 
 while True:
-    state = 0
+    state = 27
     new_state = 0
     reward = 0
 
-    file = open('resultado.txt', 'r')
-    file_content = file.readlines()
-    file.close()
+    with open('resultado.txt', 'r') as f:
+        qtable = [[float(q) for q in line.split()] for line in f.readlines()]
 
-    qtable = []
-
-    for line in file_content:
-        line = line.split()
-        for i in range(len(line)):
-            line[i] = float(line[i])
-
-        qtable.append(line)
-
-    while not reward == win:
-        state = new_state
+    while not reward == win_reward:
+        if random.random() < epsilon:
+            action_idx = random.choice([0, 1, 2])
+        else:
+            action_idx = qtable[state].index(max(qtable[state]))
 
         actions = {0: 'left', 1: 'right', 2: 'jump'}
-
-        if random() < 0.1:
-            action_idx = randint(0, 2)
-            
-        else: 
-            action_idx = qtable[state].index(max(qtable[state]))    
-        
         action = actions[action_idx]
-        
+
         new_state, reward = cn.get_state_reward(s, action)
+        new_state = int(new_state, 2)
 
-        new_state = int(str(new_state), 2)
+        qtable = q_update(state, action, reward, new_state, qtable, alpha, gamma)
 
-        print(f'state: {state}, action: {action},  new_state: {new_state}, reward: {reward}')
+        state = new_state
 
-        q_update(state, action, reward, new_state)
-
-        if (reward == death):
+        if reward == death_reward:
             print('Morreu')
             break
-
-        if (reward == win):
+        elif reward == win_reward:
             print('Ganhou')
+            break
 
-    visited_states = []
+    with open('resultado.txt', 'w') as f:
+        for line in qtable:
+            f.write(' '.join(str(q) for q in line) + '\n')
 
-    file = open('resultado.txt', 'w')
-
-    content = ''
-
-    for line in qtable:
-        for (i, value) in enumerate(line):
-            line[i] = str(value)
-
-        content += ' '.join(line) + '\n'
-
-    file.write(content)
-
-    time.sleep(3)
-
-
+    time.sleep(2.5)
