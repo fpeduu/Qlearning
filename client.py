@@ -5,7 +5,7 @@ import time
 s = cn.connect(2037)
 
 def q_update(state, action, reward, next_state):
-    alpha = 0.7
+    alpha = 0.6
     gamma = 0.4
 
     action = 0 if action == 'left' else 1 if action == 'right' else 2

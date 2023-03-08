@@ -4,7 +4,7 @@ import time
 s = cn.connect(2037)
 
 def q_update(state, action, reward, next_state, qtable):
-    alpha = 0.7
+    alpha = 0.6
     gamma = 0.4
 
     actions = {'left': 0, 'right': 1, 'jump': 2}
@@ -19,7 +19,7 @@ death_reward = -100
 win_reward = 300
 
 while True:
-    state = 0
+    state = 15
     new_state = 0
     reward = 0
 
